@@ -4,3 +4,4 @@ models/
 electrocardiograms/
 venv/
 *.png
+__pycache__/

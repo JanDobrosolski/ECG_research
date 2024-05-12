@@ -5,6 +5,11 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 if __name__ == "__main__":
+    modelsDir = "models"
+    autoencoderPath = os.path.join(modelsDir, "autoencoder.h5")
+    if not os.path.exists(autoencoderPath):
+        raise Exception("Autoencoder model not found, it has to be trained first")
+    
     # Load the dataset
     df = pd.read_csv('dataset.csv')
 
@@ -21,7 +26,6 @@ if __name__ == "__main__":
     df = df.sample(frac=1).reset_index(drop=True)
 
     checkpointDir = "tmp/checkpoint"
-    modelsDir = "models"
 
     os.makedirs(checkpointDir, exist_ok=True)
 
@@ -34,7 +38,7 @@ if __name__ == "__main__":
     X_train, X_temp, y_train, y_temp = train_test_split(X, df['rmssdFound'], test_size=0.3, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
-    autoencoder = tf.keras.models.load_model('models/autoencoder.h5')
+    autoencoder = tf.keras.models.load_model(autoencoderPath)
     encoder_output = autoencoder.get_layer('max_pooling1d_1').output
     encoder_model = tf.keras.Model(inputs=autoencoder.input, outputs=encoder_output)
 
@@ -42,10 +46,10 @@ if __name__ == "__main__":
     input_layer = tf.keras.layers.Input(shape=input_shape)
 
     # Regression branch converted to classification branch
-    x = tf.keras.layers.Flatten()(encoder_output)
-    x = tf.keras.layers.Dense(128, activation='relu')(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    output_rrsd = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+    x = tf.keras.layers.Flatten(name='flatten_discriminate')(encoder_output)
+    x = tf.keras.layers.Dense(128, activation='relu', name='dense_discriminate')(x)
+    x = tf.keras.layers.Dropout(0.5, name='dropout_discriminate')(x)
+    output_rrsd = tf.keras.layers.Dense(1, activation='sigmoid', name='output_discriminate')(x)
     
     model = tf.keras.Model(inputs=autoencoder.input, outputs=output_rrsd)
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])

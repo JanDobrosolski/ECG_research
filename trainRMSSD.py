@@ -5,11 +5,15 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 if __name__ == "__main__":
+    modelsDir = "models"
+    autoencoderPath = os.path.join(modelsDir, "autoencoder.h5")
+    if not os.path.exists(autoencoderPath):
+        raise Exception("Autoencoder model not found, it has to be trained first")
+    
     # Load the dataset
     df = pd.read_csv('dataset.csv')
 
     checkpointDir = "tmp/checkpoint"
-    modelsDir = "models"
 
     os.makedirs(checkpointDir, exist_ok=True)
 
@@ -26,7 +30,7 @@ if __name__ == "__main__":
     X_train, X_temp, y_train, y_temp = train_test_split(X, df['rmssd'].to_numpy(), test_size=0.3, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
-    autoencoder = tf.keras.models.load_model('models/autoencoder.h5')
+    autoencoder = tf.keras.models.load_model(autoencoderPath)
     encoder_output = autoencoder.get_layer('max_pooling1d_1').output
     encoder_model = tf.keras.Model(inputs=autoencoder.input, outputs=encoder_output)
 

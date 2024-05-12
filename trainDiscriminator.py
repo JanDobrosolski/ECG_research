@@ -42,12 +42,11 @@ if __name__ == "__main__":
     input_layer = tf.keras.layers.Input(shape=input_shape)
 
     # Regression branch converted to classification branch
-    x = tf.keras.layers.Flatten()(encoder_output)  # Flatten the output of the encoder
+    x = tf.keras.layers.Flatten()(encoder_output)
     x = tf.keras.layers.Dense(128, activation='relu')(x)
-    x = tf.keras.layers.Dropout(0.5)(x)  # Helps prevent overfitting
-    output_rrsd = tf.keras.layers.Dense(1, activation='sigmoid')(x)  # Sigmoid activation for binary classification
-
-    # Full model: input to the autoencoder, output from the classification branch
+    x = tf.keras.layers.Dropout(0.5)(x)
+    output_rrsd = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+    
     model = tf.keras.Model(inputs=autoencoder.input, outputs=output_rrsd)
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 

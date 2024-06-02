@@ -18,9 +18,8 @@ if __name__ == "__main__":
     df['window'] = df['window'].apply(lambda x: np.fromstring(x.replace('[', '').replace(']', ''), sep=','))
 
     df.drop(df[df['rmssdFound'] == 0].index, inplace=True)
-    # df.drop(df[df['rmssd'] > np.percentile(df['rmssd'], 95)].index, inplace=True)
-    # df.drop(df[df['rmssd'] < np.percentile(df['rmssd'], 5)].index, inplace=True)
 
+    df = df.sample(n=len(df)).reset_index(drop=True)
     X = np.stack(df['window'].values)
     X = np.expand_dims(X, axis=-1)
 
@@ -55,12 +54,25 @@ if __name__ == "__main__":
         mode='min',
         save_best_only=True)
 
-    # Train the model
-    model.fit(X_train, X_train, validation_data=(X_val, X_val), epochs=20, batch_size=100, callbacks=[model_checkpoint_callback])
+    model.fit(X_train, X_train, validation_data=(X_val, X_val), epochs=100, batch_size=128, callbacks=[model_checkpoint_callback])
+
+    model.load_weights(checkpoint_filepath)
 
     # Evaluate the model
     test_results = model.evaluate(X_test, X_test)
+    test_results_path = os.path.join(modelsDir, 'autoencoder_metric.txt')
     print("Test Results - Loss: ", test_results)
 
-    # Optionally, save the model
-    model.save(os.path.join(modelsDir,'autoencoder.h5'))
+    if os.path.exists(test_results_path):
+        with open(test_results_path, 'r') as f:
+            old_test_results = float(f.read())
+    else:
+        old_test_results = 9999.999
+
+    if test_results < old_test_results:
+        with open(test_results_path, 'w') as f:
+            f.write(str(test_results))
+
+        model.save(os.path.join(modelsDir,'autoencoder.h5'))
+        _ = os.popen("python buildModel.py").read()
+

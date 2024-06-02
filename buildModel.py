@@ -1,7 +1,5 @@
 import os
 import tensorflow as tf
-import pandas as pd
-import numpy as np
 
 class ConditionalActivationLayer(tf.keras.layers.Layer):
 
@@ -52,7 +50,7 @@ if __name__ == "__main__":
     encoder_model = tf.keras.Model(inputs=autoencoder.input, outputs=encoder_output)
 
     discriminator_input = discriminator.get_layer("flatten_discriminate")
-    rmssd_input = rmssd.get_layer("flatten")
+    rmssd_input = rmssd.get_layer("flatten_rmssd")
 
     discriminator_model = tf.keras.Model(inputs=discriminator_input.input, outputs=discriminator.output)
 

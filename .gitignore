@@ -5,3 +5,7 @@ electrocardiograms/
 venv/
 *.png
 __pycache__/
+physionetSignals/
+
+*.txt
+!requirements.txt
